@@ -21,5 +21,6 @@
 #
 #    The author may be contacted by email at jon@atack.com.
 #++
-require 'kraken_ruby_client/version'
-require 'kraken_ruby_client/client'
+require "kraken_ruby_client/version"
+require "kraken_ruby_client/client"
+require "kraken_ruby_client/websocket"
