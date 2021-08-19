@@ -22,29 +22,29 @@
 #    The author may be contacted by email at jon@atack.com.
 #++
 
-require 'openssl'
-require 'base64'
-require 'securerandom'
-require 'curb'
-require 'json'
-require 'kraken_ruby_client/http_errors'
+require "openssl"
+require "base64"
+require "securerandom"
+require "curb"
+require "json"
+require "kraken_ruby_client/http_errors"
 
 module Kraken
   # irb -I lib (or) rake console
   # require 'kraken_ruby_client'
   # client = Kraken::Client.new(api_key: YOUR_KEY, api_secret: YOUR_SECRET)
   class Client
-    KRAKEN_API_URL     = 'https://api.kraken.com'
+    KRAKEN_API_URL = "https://api.kraken.com"
     KRAKEN_API_VERSION = 0
-    HTTP_SUCCESS       = 200
+    HTTP_SUCCESS = 200
 
     def initialize(api_key: nil, api_secret: nil, options: {})
       @api_key, @api_secret = api_key, api_secret
-      base_uri              = options[:base_uri] || KRAKEN_API_URL
-      api_version_path      = "/#{options[:version] || KRAKEN_API_VERSION}"
-      @api_public_url       = "#{base_uri}#{api_version_path}/public/"
-      @api_private_path     =            "#{api_version_path}/private/"
-      @api_private_url      = base_uri + @api_private_path
+      base_uri = options[:base_uri] || KRAKEN_API_URL
+      api_version_path = "/#{options[:version] || KRAKEN_API_VERSION}"
+      @api_public_url = "#{base_uri}#{api_version_path}/public/"
+      @api_private_path = "#{api_version_path}/private/"
+      @api_private_url = base_uri + @api_private_path
     end
 
     # Get server time
@@ -55,7 +55,7 @@ module Kraken
     #   +rfc1123+   = RFC 1123 time format
     #
     def server_time
-      get_public 'Time'
+      get_public "Time"
     end
 
     # Get asset info
@@ -76,9 +76,9 @@ module Kraken
     #
     def assets(assets = nil)
       if assets
-        get_public 'Assets', asset: assets
+        get_public "Assets", asset: assets
       else
-        get_public 'Assets'
+        get_public "Assets"
       end
     end
 
@@ -118,14 +118,23 @@ module Kraken
     #
     def asset_pairs(pairs = nil)
       if pairs
-        get_public 'AssetPairs', pair: pairs
+        get_public "AssetPairs", pair: pairs
       else
-        get_public 'AssetPairs'
+        get_public "AssetPairs"
       end
     end
 
+    # a = ask array(<price>, <whole lot volume>, <lot volume>)
+    # b = bid array(<price>, <whole lot volume>, <lot volume>)
+    # c = last trade closed array(<price>, <lot volume>)
+    # v = volume array(<today>, <last 24 hours>)
+    # p = volume weighted average price array(<today>, <last 24 hours>)
+    # t = number of trades array(<today>, <last 24 hours>)
+    # l = low array(<today>, <last 24 hours>)
+    # h = high array(<today>, <last 24 hours>)
+    # o = today’s opening price
     def ticker(pairs = nil)
-      get_public 'Ticker', pair: pairs
+      get_public "Ticker", pair: pairs
     end
 
     # Get OHLC (Open, High, Low, Close) data
@@ -146,20 +155,20 @@ module Kraken
     #   +last+ is to be used as `since' when getting new committed OHLC data.
     #
     def ohlc(pair = nil, interval: 1, since: nil)
-      get_public 'OHLC', pair: pair, interval: interval, since: since
+      get_public "OHLC", pair: pair, interval: interval, since: since
     end
 
     def order_book(pair = nil)
-      get_public 'Depth', pair: pair
+      get_public "Depth", pair: pair
     end
 
     def trades(pair, since = nil)
-      get_public 'Trades', pair: pair, since: since
+      get_public "Trades", pair: pair, since: since
     end
 
     def spread(pair = nil, opts = {})
-      opts['pair'] = pair
-      get_public 'Spread', opts
+      opts["pair"] = pair
+      get_public "Spread", opts
     end
 
     # Create a new order (POST)
@@ -215,7 +224,7 @@ module Kraken
       missing_args = add_order_required_args - opts.keys.map(&:to_s)
       raise ArgumentError, add_order_err_msg(missing_args) if missing_args.any?
 
-      post_private 'AddOrder', opts
+      post_private "AddOrder", opts
     end
 
     def add_order_required_args
@@ -223,21 +232,25 @@ module Kraken
     end
 
     def add_order_err_msg(missing_args)
-      "the following required arguments are missing: #{missing_args.join(', ')}"
+      "the following required arguments are missing: #{missing_args.join(", ")}"
     end
 
     # Cancel order having txn id
     #
     def cancel_order(txid)
-      post_private 'CancelOrder', txid: txid
+      post_private "CancelOrder", txid: txid
     end
 
     def balance
-      post_private 'Balance'
+      post_private "Balance"
     end
 
     def trade_balance(opts = {})
-      post_private 'TradeBalance', opts
+      post_private "TradeBalance", opts
+    end
+
+    def query_orders_info(txid, userref: nil, trades: false)
+      get_private "QueryOrders"
     end
 
     # Fetch trade volume (POST)
@@ -286,7 +299,7 @@ module Kraken
     # client.trade_volume(pair: 'XBTEUR', 'fee-info': true)
     #
     def trade_volume(opts = {})
-      post_private 'TradeVolume', opts
+      post_private "TradeVolume", opts
     end
 
     # Fetch open orders (POST)
@@ -327,7 +340,7 @@ module Kraken
     #   open_orders.detect { |_, v| v.dig('descr', 'pair') == pair }
     #
     def open_orders(opts = {})
-      post_private 'OpenOrders', opts
+      post_private "OpenOrders", opts
     end
 
     # Fetch closed orders (POST)
@@ -363,7 +376,7 @@ module Kraken
     #   closed_orders.detect { |_, v| v.dig('descr', 'pair') == pair }
     #
     def closed_orders(opts = {})
-      post_private 'ClosedOrders', opts
+      post_private "ClosedOrders", opts
     end
 
     # Get deposit methods (POST)
@@ -373,7 +386,7 @@ module Kraken
     # client.deposit_methods(asset: :xxbt)
     #
     def deposit_methods(opts = {})
-      post_private 'DepositMethods', opts
+      post_private "DepositMethods", opts
     end
 
     # Get deposit addresses (POST)
@@ -394,7 +407,7 @@ module Kraken
     # client.deposit_addresses(asset: 'xxbt', method: 'Bitcoin', new: true)
     #
     def deposit_addresses(opts = {})
-      post_private 'DepositAddresses', opts
+      post_private "DepositAddresses", opts
     end
 
     # Get deposit status (POST)
@@ -404,7 +417,7 @@ module Kraken
     # client.deposit_status(asset: :xxbt, method: 'Bitcoin')
     #
     def deposit_status(opts = {})
-      post_private 'DepositStatus', opts
+      post_private "DepositStatus", opts
     end
 
     # Withdraw info (POST)
@@ -414,7 +427,7 @@ module Kraken
     # client.withdraw_info(asset: :zusd, key: 'Bank account name', amount: 10)
     #
     def withdraw_info(opts = {})
-      post_private 'WithdrawInfo', opts
+      post_private "WithdrawInfo", opts
     end
 
     # Withdraw status (POST)
@@ -424,7 +437,7 @@ module Kraken
     # client.withdraw_status(asset: :zeur)
     #
     def withdraw_status(opts = {})
-      post_private 'WithdrawStatus', opts
+      post_private "WithdrawStatus", opts
     end
 
     # Withdraw funds (POST)
@@ -442,7 +455,7 @@ module Kraken
     # client.withdraw(asset: :zusd, key: 'Bank account name', amount: 10)
     #
     def withdraw(opts = {})
-      post_private 'Withdraw', opts
+      post_private "Withdraw", opts
     end
 
     # Request withdrawal cancellation (POST)
@@ -460,7 +473,7 @@ module Kraken
     # not be possible to cancel the withdrawal.
     #
     def withdraw_cancel(opts = {})
-      post_private 'WithdrawCancel', opts
+      post_private "WithdrawCancel", opts
     end
 
     private
@@ -478,13 +491,13 @@ module Kraken
     #
     def post_private(method, opts = {})
       url = "#{@api_private_url}#{method}"
-      nonce = opts['nonce'] = generate_nonce
-      params = opts.map { |param| param.join('=') }.join('&')
+      nonce = opts["nonce"] = generate_nonce
+      params = opts.map { |param| param.join("=") }.join("&")
 
       http = Curl.post(url, params) do |request|
         request.headers = {
-          'api-key'  => @api_key,
-          'api-sign' => authenticate(auth_url(method, nonce, params))
+          "api-key" => @api_key,
+          "api-sign" => authenticate(auth_url(method, nonce, params)),
         }
       end
 
@@ -514,10 +527,10 @@ module Kraken
     end
 
     def authenticate(url)
-      raise 'API Key is not set' unless @api_key
-      raise 'API Secret is not set' unless @api_secret
+      raise "API Key is not set" unless @api_key
+      raise "API Secret is not set" unless @api_secret
 
-      hmac = OpenSSL::HMAC.digest('sha512', Base64.decode64(@api_secret), url)
+      hmac = OpenSSL::HMAC.digest("sha512", Base64.decode64(@api_secret), url)
       Base64.strict_encode64(hmac)
     end
   end
