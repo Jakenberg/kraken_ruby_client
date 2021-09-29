@@ -98,13 +98,12 @@ module Kraken
       pairs = pairs.is_a?(String) ? [pairs] : pairs
       raise WebSocket::Error.new("channel name \"#{channel_name}\" is forbidden!") unless channel_name.nil? || public_event_keys.include?(channel_name.to_s)
       @events.public.send("#{channel_name}=", on_receive) unless on_receive.nil?
+      params = { name: channel_name }
+      params[interval] = interval if channel_name.to_sym == :ohlc
       send_message({
         event: :subscribe,
         pair: pairs,
-        subscription: {
-          name: channel_name,
-          interval: interval,
-        }.merge(channel_args),
+        subscription: params.merge(channel_args),
       })
     end
 
